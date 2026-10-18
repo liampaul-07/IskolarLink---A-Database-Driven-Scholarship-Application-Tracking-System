@@ -1,0 +1,36 @@
+{
+  "name": "iskolarlink---a-database-driven-scholarship-application-tracking-system",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "start": "node server/app.js",
+    "dev": "nodemon server/app.js"  
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/liampaul-07/IskolarLink---A-Database-Driven-Scholarship-Application-Tracking-System.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/liampaul-07/IskolarLink---A-Database-Driven-Scholarship-Application-Tracking-System/issues"
+  },
+  "homepage": "https://github.com/liampaul-07/IskolarLink---A-Database-Driven-Scholarship-Application-Tracking-System#readme",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.8",
+    "express": "^5.3.0",
+    "mysql2": "^3.24.6"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
