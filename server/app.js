@@ -11,8 +11,9 @@ app.use(express.static(path.join(__dirname, '..', 'public')));
 
 // --- API routes ---
 app.use('/api/health', require('./routes/health'));
-// Mount new routers here as they are built, e.g.:
-// app.use('/api/programs', require('./routes/programs'));
+app.use('/api/programs', require('./routes/programs'));
+app.use('/api/tiers', require('./routes/tiers'));
+// Mount new routers here as they are built.
 
 // Unknown API route -> 404 in the standard format
 app.use('/api', (req, res) => sendError(res, 404, 'Route not found.'));
