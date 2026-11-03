@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>IskolarLink - Log in</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <header class="topbar centered">
+    <h1>IskolarLink</h1>
+    <span class="badge">Staff login</span>
+  </header>
+
+  <main>
+    <div class="login-card">
+      <h2>Log in</h2>
+      <p class="hint">Staff and admin accounts only.</p>
+      <div id="banner" class="banner" role="alert" hidden></div>
+
+      <form id="login-form" novalidate>
+        <div class="field">
+          <label for="username">Username</label>
+          <input id="username" type="text" autocomplete="username" autofocus>
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input id="password" type="password" autocomplete="current-password">
+        </div>
+        <button id="btn-login" class="btn primary" type="submit">Log in</button>
+      </form>
+    </div>
+  </main>
+
+  <script src="/js/common.js"></script>
+  <script src="/js/login.js"></script>
+</body>
+</html>

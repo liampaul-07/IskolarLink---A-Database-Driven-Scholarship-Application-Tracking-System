@@ -2,11 +2,72 @@
 // Everything user-supplied is inserted with textContent / text nodes (never innerHTML),
 // so script tags typed into text fields are displayed as plain text (XSS-safe).
 
+// ---------- Login session ----------
+// The JWT is kept in sessionStorage (cleared when the tab closes). Trade-off to mention at the
+// defense: script injected into the page could read it, which is why the pages never use innerHTML.
+const auth = {
+  getToken() {
+    try { return sessionStorage.getItem('il_token'); } catch (e) { return null; }
+  },
+  getUser() {
+    try { return JSON.parse(sessionStorage.getItem('il_user') || 'null'); } catch (e) { return null; }
+  },
+  save(token, user) {
+    try {
+      sessionStorage.setItem('il_token', token);
+      sessionStorage.setItem('il_user', JSON.stringify(user));
+    } catch (e) { /* storage blocked: the user will simply be asked to log in again */ }
+  },
+  clear() {
+    try { sessionStorage.removeItem('il_token'); sessionStorage.removeItem('il_user'); } catch (e) { /* ignore */ }
+  },
+  logout() {
+    auth.clear();
+    window.location.href = '/login.html';
+  },
+  // Call at the top of a protected page. Returns the user, or null after redirecting.
+  // `roles` is optional: guard(['admin']) bounces everyone else back to the home page.
+  guard(roles) {
+    const user = auth.getUser();
+    if (!auth.getToken() || !user) {
+      window.location.href = '/login.html';
+      return null;
+    }
+    if (roles && !roles.includes(user.role)) {
+      window.location.href = '/';
+      return null;
+    }
+    return user;
+  }
+};
+
+// Fills <nav id="topbar-right"> with links, the user's name, and a Log out button.
+// (Hiding links by role is only for convenience; the server enforces the real permissions.)
+function renderTopbar() {
+  const nav = document.getElementById('topbar-right');
+  const user = auth.getUser();
+  if (!nav || !user) return;
+  const items = [
+    el('a', { href: '/' }, 'Home'),
+    el('a', { href: '/applications.html' }, 'Applications'),
+    el('a', { href: '/applicants.html' }, 'Applicants'),
+    el('a', { href: '/programs.html' }, 'Programs'),
+    user.role === 'admin' ? el('a', { href: '/users.html' }, 'Users') : null,
+    el('span', { class: 'who' }, `${user.fullName} (${user.role})`),
+    el('button', { class: 'btn small', type: 'button', onclick: auth.logout }, 'Log out')
+  ];
+  // replaceChildren would print a null item as the text "null", so drop the empty ones first.
+  nav.replaceChildren(...items.filter(Boolean));
+}
+
 // ---------- API ----------
 // api('GET', '/programs') -> resolves with the parsed { success, message, data } body.
 // Rejects with an Error that has .status (HTTP code) and .errors (validation list).
+// Sends the login token automatically; a 401 anywhere else sends the user to the login page.
 async function api(method, path, body) {
   const options = { method, headers: {} };
+  const token = auth.getToken();
+  if (token) options.headers['Authorization'] = 'Bearer ' + token;
   if (body !== undefined) {
     options.headers['Content-Type'] = 'application/json';
     options.body = JSON.stringify(body);
@@ -32,6 +93,11 @@ async function api(method, path, body) {
 
   if (api.onResponse) api.onResponse(method, path, res.status);
 
+  if (res.status === 401 && !path.startsWith('/auth/login')) {
+    auth.clear(); // token expired or account deactivated
+    window.location.href = '/login.html';
+  }
+
   if (!res.ok || !json.success) {
     const err = new Error(json.message || 'Request failed.');
     err.status = res.status;
@@ -55,6 +121,34 @@ function el(tag, props = {}, ...children) {
     node.append(child instanceof Node ? child : document.createTextNode(child ?? ''));
   }
   return node;
+}
+
+// ---------- Display helpers ----------
+const dateOnly = (s) => (s ? String(s).slice(0, 10) : '');
+const dateTime = (s) => (s ? String(s).slice(0, 16) : '');
+const slug = (s) => String(s).toLowerCase().replace(/\s+/g, '-');
+const phaseTag = (phase) => el('span', { class: 'tag ph-' + slug(phase) }, phase);
+const eligibilityTag = (value) => el('span', { class: 'tag el-' + value }, value);
+
+// Error box inside a dialog (the red list under the title).
+function hideErrorBox(id) {
+  const box = document.getElementById(id);
+  box.hidden = true;
+  box.replaceChildren();
+}
+function fillErrorBox(id, err) {
+  const box = document.getElementById(id);
+  box.replaceChildren(el('strong', {}, err.message));
+  if (err.errors && err.errors.length) {
+    box.append(el('ul', {}, err.errors.map((e) => el('li', {}, `${e.field}: ${e.message}`))));
+  }
+  box.hidden = false;
+}
+
+// Replaces a <select>'s options. options = [{ value, label }]
+function fillSelect(select, options, firstLabel) {
+  const items = options.map((o) => el('option', { value: o.value }, o.label));
+  select.replaceChildren(...(firstLabel === undefined ? [] : [el('option', { value: '' }, firstLabel)]), ...items);
 }
 
 // ---------- Messages ----------

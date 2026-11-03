@@ -5,6 +5,13 @@ const $ = (id) => document.getElementById(id);
 
 const state = { page: 1, limit: 10, total: 0, programs: [], tiersProgram: null };
 
+// Must be logged in. Staff can look; only admins see the buttons that change data.
+// (Hiding buttons is for convenience; the server returns 403 for staff regardless.)
+const me = auth.guard();
+const isAdmin = Boolean(me) && me.role === 'admin';
+renderTopbar();
+if (!isAdmin) $('btn-new').hidden = true;
+
 const money = (n) => (n === null || n === undefined ? '-' : Number(n).toLocaleString('en-PH'));
 const typeLabel = (t) => (t === 'grant' ? 'Grant' : 'Non-grant');
 
@@ -48,9 +55,9 @@ function renderPrograms() {
       el('td', {}, p.minGwa ?? '-'),
       el('td', {}, money(p.maxHouseholdIncome)),
       el('td', { class: 'actions' },
-        el('button', { class: 'btn small', type: 'button', onclick: () => openProgramForm(p) }, 'Edit'),
+        isAdmin ? el('button', { class: 'btn small', type: 'button', onclick: () => openProgramForm(p) }, 'Edit') : null,
         el('button', { class: 'btn small', type: 'button', onclick: () => openTiers(p) }, 'Tiers'),
-        p.isArchived
+        !isAdmin ? null : p.isArchived
           ? el('button', { class: 'btn small', type: 'button', onclick: () => setArchived(p, false) }, 'Restore')
           : el('button', { class: 'btn small danger', type: 'button', onclick: () => setArchived(p, true) }, 'Archive')
       )
@@ -140,6 +147,7 @@ async function setArchived(program, archived) {
 async function openTiers(program) {
   state.tiersProgram = program;
   $('tiers-title').textContent = `Tiers: ${program.name}`;
+  $('tier-form').hidden = !isAdmin; // staff can view tiers but not change them
   resetTierForm();
   $('tiers-dialog').showModal();
   await loadTiers();
@@ -159,8 +167,8 @@ async function loadTiers() {
         el('td', {}, t.description ?? ''),
         el('td', {}, money(t.defaultAmount)),
         el('td', { class: 'actions' },
-          el('button', { class: 'btn small', type: 'button', onclick: () => editTier(t) }, 'Edit'),
-          el('button', { class: 'btn small danger', type: 'button', onclick: () => deleteTier(t) }, 'Delete')
+          isAdmin ? el('button', { class: 'btn small', type: 'button', onclick: () => editTier(t) }, 'Edit') : null,
+          isAdmin ? el('button', { class: 'btn small danger', type: 'button', onclick: () => deleteTier(t) }, 'Delete') : null
         )
       ));
     }
@@ -237,4 +245,4 @@ for (const id of ['filter-type', 'filter-status', 'filter-archived']) {
   $(id).addEventListener('change', () => { state.page = 1; loadPrograms(); });
 }
 
-loadPrograms();
+if (me) loadPrograms();
