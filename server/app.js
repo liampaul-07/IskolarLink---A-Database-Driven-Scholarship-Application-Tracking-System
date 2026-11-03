@@ -1,8 +1,23 @@
 const path = require('path');
 const express = require('express');
+const helmet = require('helmet');
+const cors = require('cors');
 const { sendError } = require('./utils/response');
 
 const app = express();
+
+// Security headers. upgradeInsecureRequests is off so the app also works over plain
+// http://localhost during development.
+app.use(helmet({
+  contentSecurityPolicy: {
+    useDefaults: true,
+    directives: { upgradeInsecureRequests: null }
+  }
+}));
+
+// Only the configured origin may call the API from a browser. With no CORS_ORIGIN set,
+// no cross-origin access is allowed (the pages are served from this same server anyway).
+app.use(cors({ origin: process.env.CORS_ORIGIN || false }));
 
 app.use(express.json({ limit: '100kb' })); // reject oversized bodies
 
@@ -11,8 +26,12 @@ app.use(express.static(path.join(__dirname, '..', 'public')));
 
 // --- API routes ---
 app.use('/api/health', require('./routes/health'));
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/users', require('./routes/users'));
 app.use('/api/programs', require('./routes/programs'));
 app.use('/api/tiers', require('./routes/tiers'));
+app.use('/api/applicants', require('./routes/applicants'));
+app.use('/api/applications', require('./routes/applications'));
 // Mount new routers here as they are built.
 
 // Unknown API route -> 404 in the standard format

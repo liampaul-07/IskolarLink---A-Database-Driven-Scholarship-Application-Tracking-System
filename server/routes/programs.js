@@ -1,19 +1,22 @@
 const express = require('express');
 const asyncHandler = require('../utils/asyncHandler');
+const { requireAuth, requireRole } = require('../middleware/auth');
 const programs = require('../controllers/programsController');
 const tiers = require('../controllers/tiersController');
 
 const router = express.Router();
 
-// TODO (auth step): reads -> requireAuth; writes -> requireAuth + requireRole('admin')
+// Any logged-in user can read; only admins can create, edit, or archive.
+router.use(requireAuth);
+const adminOnly = requireRole('admin');
 
 router.get('/', asyncHandler(programs.list));
-router.post('/', asyncHandler(programs.create));
+router.post('/', adminOnly, asyncHandler(programs.create));
 router.get('/:id', asyncHandler(programs.getOne));
-router.put('/:id', asyncHandler(programs.update));
-router.patch('/:id/archive', asyncHandler(programs.archive));
+router.put('/:id', adminOnly, asyncHandler(programs.update));
+router.patch('/:id/archive', adminOnly, asyncHandler(programs.archive));
 
 router.get('/:id/tiers', asyncHandler(tiers.listForProgram));
-router.post('/:id/tiers', asyncHandler(tiers.createForProgram));
+router.post('/:id/tiers', adminOnly, asyncHandler(tiers.createForProgram));
 
 module.exports = router;
