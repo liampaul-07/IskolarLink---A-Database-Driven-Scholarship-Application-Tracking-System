@@ -2,7 +2,7 @@
 
 // Already logged in? Go straight to the console.
 if (auth.getToken() && auth.getUser()) {
-  window.location.href = '/';
+  window.location.href = '/applications.html';
 }
 
 document.getElementById('login-form').addEventListener('submit', async (event) => {
@@ -16,7 +16,7 @@ document.getElementById('login-form').addEventListener('submit', async (event) =
       password: document.getElementById('password').value
     });
     auth.save(res.data.token, res.data.user);
-    window.location.href = '/';
+    window.location.href = '/applications.html';
   } catch (err) {
     showError(err); // shows the server's message (e.g. the generic 401 or the 429 lockout)
     document.getElementById('password').value = '';

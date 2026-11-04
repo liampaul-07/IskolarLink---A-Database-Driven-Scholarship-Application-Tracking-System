@@ -3,19 +3,33 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>IskolarLink</title>
+  <title>IskolarLink: Check your application</title>
   <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
   <header class="topbar">
     <h1>IskolarLink</h1>
-    <span class="badge">Test console</span>
     <nav class="topbar-right" id="topbar-right"></nav>
   </header>
   <main class="landing">
-    <h2>IskolarLink test console</h2>
-    <p>Temporary pages for exercising the API. The real staff and lookup interfaces will replace these.</p>
-    <div id="home-links"></div>
+    <h2>Check your scholarship application</h2>
+    <p>Enter the reference number and PIN you received from the scholarship office, and your birth date.</p>
+    <div id="banner" class="banner" hidden></div>
+
+    <form id="lookup-form" autocomplete="off" novalidate>
+      <label for="referenceNo">Reference number</label>
+      <input id="referenceNo" name="referenceNo" maxlength="10" required>
+
+      <label for="birthDate">Birth date</label>
+      <input id="birthDate" name="birthDate" type="date" required>
+
+      <label for="pin">PIN (6 digits)</label>
+      <input id="pin" name="pin" inputmode="numeric" maxlength="6" required>
+
+      <button id="btn-lookup" class="btn primary" type="submit">Check status</button>
+    </form>
+
+    <section id="result" hidden></section>
   </main>
 
   <script src="/js/common.js"></script>

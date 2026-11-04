@@ -34,7 +34,7 @@ const auth = {
       return null;
     }
     if (roles && !roles.includes(user.role)) {
-      window.location.href = '/';
+      window.location.href = '/applications.html'; // not allowed to see this page
       return null;
     }
     return user;
@@ -48,7 +48,6 @@ function renderTopbar() {
   const user = auth.getUser();
   if (!nav || !user) return;
   const items = [
-    el('a', { href: '/' }, 'Home'),
     el('a', { href: '/applications.html' }, 'Applications'),
     el('a', { href: '/applicants.html' }, 'Applicants'),
     el('a', { href: '/programs.html' }, 'Programs'),
