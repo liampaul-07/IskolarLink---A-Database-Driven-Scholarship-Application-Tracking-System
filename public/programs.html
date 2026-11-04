@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>IskolarLink - Programs</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1>IskolarLink</h1>
+    <span class="badge">Test console: Programs</span>
+    <nav class="topbar-right" id="topbar-right"></nav>
+  </header>
+
+  <main>
+    <div id="banner" class="banner" role="status" hidden></div>
+
+    <section class="toolbar">
+      <input id="filter-q" type="search" placeholder="Search program name">
+      <select id="filter-type">
+        <option value="">All types</option>
+        <option value="grant">Grant</option>
+        <option value="non_grant">Non-grant</option>
+      </select>
+      <select id="filter-status">
+        <option value="">All statuses</option>
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+      </select>
+      <label><input id="filter-archived" type="checkbox"> Show archived</label>
+      <span class="spacer"></span>
+      <button id="btn-new" class="btn primary" type="button">+ New program</button>
+    </section>
+
+    <div id="last-call" class="last-call">No requests yet.</div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Status</th>
+          <th>Min GWA</th>
+          <th>Max income</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="programs-body"></tbody>
+    </table>
+
+    <div class="pager">
+      <span id="pager-info"></span>
+      <button id="btn-prev" class="btn small" type="button">Previous</button>
+      <button id="btn-next" class="btn small" type="button">Next</button>
+    </div>
+  </main>
+
+  <!-- Add / edit program -->
+  <dialog id="program-dialog">
+    <form id="program-form" novalidate>
+      <h2 id="program-dialog-title">New program</h2>
+      <div id="program-errors" class="form-errors" hidden></div>
+      <input type="hidden" id="program-id">
+
+      <div class="field">
+        <label for="f-name">Name</label>
+        <input id="f-name" type="text">
+      </div>
+      <div class="row">
+        <div class="field">
+          <label for="f-type">Type</label>
+          <select id="f-type">
+            <option value="">Select type</option>
+            <option value="grant">Grant</option>
+            <option value="non_grant">Non-grant</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="f-status">Status</label>
+          <select id="f-status">
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label for="f-description">Description</label>
+        <textarea id="f-description" rows="2"></textarea>
+      </div>
+      <div class="field">
+        <label for="f-criteria">Eligibility criteria</label>
+        <textarea id="f-criteria" rows="2"></textarea>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label for="f-min-gwa">Minimum GWA (optional)</label>
+          <input id="f-min-gwa" type="text" inputmode="decimal">
+        </div>
+        <div class="field">
+          <label for="f-max-income">Max household income (optional)</label>
+          <input id="f-max-income" type="text" inputmode="decimal">
+        </div>
+      </div>
+
+      <div class="dialog-actions">
+        <button type="button" class="btn" id="btn-program-cancel">Cancel</button>
+        <button type="submit" class="btn primary">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Tiers -->
+  <dialog id="tiers-dialog">
+    <div class="dialog-body">
+      <h2 id="tiers-title">Tiers</h2>
+      <div id="tier-errors" class="form-errors" hidden></div>
+
+      <table>
+        <thead>
+          <tr><th>Tier</th><th>Description</th><th>Default amount</th><th></th></tr>
+        </thead>
+        <tbody id="tiers-body"></tbody>
+      </table>
+
+      <form id="tier-form" novalidate>
+        <h2 id="tier-form-title">Add tier</h2>
+        <input type="hidden" id="tier-id">
+        <div class="row">
+          <div class="field">
+            <label for="t-name">Tier name</label>
+            <input id="t-name" type="text">
+          </div>
+          <div class="field">
+            <label for="t-amount">Default amount (optional)</label>
+            <input id="t-amount" type="text" inputmode="decimal">
+          </div>
+        </div>
+        <div class="field">
+          <label for="t-description">Description (optional)</label>
+          <input id="t-description" type="text">
+        </div>
+        <div class="dialog-actions">
+          <button type="button" class="btn" id="btn-tier-reset">Clear</button>
+          <button type="submit" class="btn primary">Save tier</button>
+        </div>
+      </form>
+
+      <div class="dialog-actions">
+        <button type="button" class="btn" id="btn-tiers-close">Close</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script src="/js/common.js"></script>
+  <script src="/js/programs.js"></script>
+</body>
+</html>

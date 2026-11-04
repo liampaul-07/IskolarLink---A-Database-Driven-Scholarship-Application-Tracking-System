@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>IskolarLink - Users</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1>IskolarLink</h1>
+    <span class="badge">Test console: Users (admin)</span>
+    <nav class="topbar-right" id="topbar-right"></nav>
+  </header>
+
+  <main>
+    <div id="banner" class="banner" role="status" hidden></div>
+
+    <section class="toolbar">
+      <button id="btn-new" class="btn primary" type="button">+ New user</button>
+    </section>
+
+    <div id="last-call" class="last-call">No requests yet.</div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Full name</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th>Created</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="users-body"></tbody>
+    </table>
+  </main>
+
+  <dialog id="user-dialog">
+    <form id="user-form" novalidate>
+      <h2 id="user-dialog-title">New user</h2>
+      <div id="user-errors" class="form-errors" hidden></div>
+      <input type="hidden" id="user-id">
+
+      <div class="field">
+        <label for="u-username">Username</label>
+        <input id="u-username" type="text" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="u-fullname">Full name</label>
+        <input id="u-fullname" type="text" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="u-password" id="u-password-label">Password</label>
+        <input id="u-password" type="password" autocomplete="new-password">
+      </div>
+      <div class="field">
+        <label for="u-role">Role</label>
+        <select id="u-role">
+          <option value="staff">Staff</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <div class="field checkbox-field" id="u-active-field">
+        <label><input id="u-active" type="checkbox" checked> Account is active</label>
+      </div>
+
+      <div class="dialog-actions">
+        <button type="button" class="btn" id="btn-user-cancel">Cancel</button>
+        <button type="submit" class="btn primary">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="/js/common.js"></script>
+  <script src="/js/users.js"></script>
+</body>
+</html>

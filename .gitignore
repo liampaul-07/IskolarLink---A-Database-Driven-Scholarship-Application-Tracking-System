@@ -14,3 +14,8 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 .vscode/
+
+# Private team docs
+docs/defense-notes.md
+docs/defense-notes-v2.md
+docs/team-instructions.md

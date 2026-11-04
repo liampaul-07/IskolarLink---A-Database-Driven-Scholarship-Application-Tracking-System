@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>IskolarLink - Applications</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1>IskolarLink</h1>
+    <span class="badge">Test console: Applications</span>
+    <nav class="topbar-right" id="topbar-right"></nav>
+  </header>
+
+  <main class="wide-main">
+    <div id="banner" class="banner" role="status" hidden></div>
+
+    <section class="filters">
+      <input id="filter-q" type="search" placeholder="Search name or reference no.">
+      <select id="filter-phase">
+        <option value="">All phases</option>
+        <option>Submitted</option>
+        <option>Under Review</option>
+        <option>For Evaluation</option>
+        <option>Approved</option>
+        <option>Ineligible</option>
+        <option>Granted</option>
+      </select>
+      <select id="filter-eligibility">
+        <option value="">Any eligibility</option>
+        <option value="pending">Pending</option>
+        <option value="eligible">Eligible</option>
+        <option value="ineligible">Ineligible</option>
+      </select>
+      <select id="filter-program"></select>
+      <select id="filter-tier" disabled></select>
+      <label class="date-filter">From <input id="filter-from" type="date"></label>
+      <label class="date-filter">To <input id="filter-to" type="date"></label>
+      <label class="date-filter"><input id="filter-archived" type="checkbox"> Show archived</label>
+      <button id="btn-clear" class="btn small" type="button">Clear filters</button>
+      <button id="btn-new" class="btn primary" type="button">+ New application</button>
+    </section>
+
+    <div id="last-call" class="last-call">No requests yet.</div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Reference</th>
+          <th>Applicant</th>
+          <th>Program</th>
+          <th>Year</th>
+          <th>Phase</th>
+          <th>Eligibility</th>
+          <th>Tier</th>
+          <th>Created</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="applications-body"></tbody>
+    </table>
+
+    <div class="pager">
+      <span id="pager-info"></span>
+      <button id="btn-prev" class="btn small" type="button">Previous</button>
+      <button id="btn-next" class="btn small" type="button">Next</button>
+    </div>
+  </main>
+
+  <!-- New application / edit -->
+  <dialog id="application-dialog">
+    <form id="application-form" novalidate>
+      <h2 id="application-dialog-title">New application</h2>
+      <div id="application-errors" class="form-errors" hidden></div>
+      <input type="hidden" id="application-id">
+
+      <div class="field">
+        <label for="f-applicant">Applicant</label>
+        <select id="f-applicant"></select>
+      </div>
+      <div class="field">
+        <label for="f-program">Program (active programs only)</label>
+        <select id="f-program"></select>
+      </div>
+      <div class="field">
+        <label for="f-year">Academic year</label>
+        <input id="f-year" type="text" placeholder="2026-2027" autocomplete="off">
+      </div>
+      <div class="field checkbox-field">
+        <label><input id="f-docs" type="checkbox"> Requirements received and checked</label>
+      </div>
+      <div class="field">
+        <label for="f-remarks">Internal remarks (never shown publicly)</label>
+        <textarea id="f-remarks" rows="3"></textarea>
+      </div>
+
+      <div class="dialog-actions">
+        <button type="button" class="btn" id="btn-application-cancel">Cancel</button>
+        <button type="submit" class="btn primary">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Detail view -->
+  <dialog id="detail-dialog" class="wide">
+    <div class="dialog-body">
+      <h2 id="detail-title">Application</h2>
+      <div id="detail-content"></div>
+      <div class="dialog-actions">
+        <button type="button" class="btn" id="btn-detail-close">Close</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script src="/js/common.js"></script>
+  <script src="/js/applications.js"></script>
+</body>
+</html>

@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>IskolarLink - Applicants</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1>IskolarLink</h1>
+    <span class="badge">Test console: Applicants</span>
+    <nav class="topbar-right" id="topbar-right"></nav>
+  </header>
+
+  <main>
+    <div id="banner" class="banner" role="status" hidden></div>
+
+    <section class="toolbar">
+      <input id="filter-q" type="search" placeholder="Search by name">
+      <label><input id="filter-archived" type="checkbox"> Show archived</label>
+      <button id="btn-new" class="btn primary" type="button">+ New applicant</button>
+    </section>
+
+    <div id="last-call" class="last-call">No requests yet.</div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Birth date</th>
+          <th>School / course</th>
+          <th>GWA</th>
+          <th>Monthly income</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="applicants-body"></tbody>
+    </table>
+
+    <div class="pager">
+      <span id="pager-info"></span>
+      <button id="btn-prev" class="btn small" type="button">Previous</button>
+      <button id="btn-next" class="btn small" type="button">Next</button>
+    </div>
+  </main>
+
+  <dialog id="applicant-dialog" class="wide">
+    <form id="applicant-form" novalidate>
+      <h2 id="applicant-dialog-title">New applicant</h2>
+      <div id="applicant-errors" class="form-errors" hidden></div>
+      <input type="hidden" id="applicant-id">
+
+      <div class="row">
+        <div class="field">
+          <label for="a-first">First name</label>
+          <input id="a-first" type="text" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="a-middle">Middle name (optional)</label>
+          <input id="a-middle" type="text" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="a-last">Last name</label>
+          <input id="a-last" type="text" autocomplete="off">
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label for="a-birth">Birth date</label>
+          <input id="a-birth" type="date">
+        </div>
+        <div class="field">
+          <label for="a-sex">Sex (optional)</label>
+          <select id="a-sex">
+            <option value="">Not specified</option>
+            <option value="female">Female</option>
+            <option value="male">Male</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label for="a-email">Email (optional)</label>
+          <input id="a-email" type="text" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="a-phone">Contact number (optional)</label>
+          <input id="a-phone" type="text" autocomplete="off">
+        </div>
+      </div>
+      <div class="field">
+        <label for="a-address">Address</label>
+        <input id="a-address" type="text" autocomplete="off">
+      </div>
+      <div class="row">
+        <div class="field">
+          <label for="a-school">School (optional)</label>
+          <input id="a-school" type="text" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="a-course">Course or strand (optional)</label>
+          <input id="a-course" type="text" autocomplete="off">
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label for="a-year">Year level (optional)</label>
+          <input id="a-year" type="text" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="a-gwa">GWA (optional)</label>
+          <input id="a-gwa" type="text" inputmode="decimal">
+        </div>
+        <div class="field">
+          <label for="a-income">Monthly household income (optional)</label>
+          <input id="a-income" type="text" inputmode="decimal">
+        </div>
+      </div>
+
+      <div id="applicant-apps" hidden>
+        <h3>Applications</h3>
+        <ul id="applicant-apps-list" class="plain-list"></ul>
+      </div>
+
+      <div class="dialog-actions">
+        <button type="button" class="btn" id="btn-applicant-cancel">Cancel</button>
+        <button type="submit" class="btn primary">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="/js/common.js"></script>
+  <script src="/js/applicants.js"></script>
+</body>
+</html>
