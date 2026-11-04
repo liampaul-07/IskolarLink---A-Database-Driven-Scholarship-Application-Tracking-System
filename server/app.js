@@ -24,6 +24,8 @@ app.use(express.json({ limit: '100kb' })); // reject oversized bodies
 // Static frontend (staff + lookup pages live in /public at the project root)
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
+app.use('/api', (req, res, next) => { res.set('Cache-Control', 'no-store'); next(); });
+
 // --- API routes ---
 app.use('/api/health', require('./routes/health'));
 app.use('/api/auth', require('./routes/auth'));
@@ -32,6 +34,8 @@ app.use('/api/programs', require('./routes/programs'));
 app.use('/api/tiers', require('./routes/tiers'));
 app.use('/api/applicants', require('./routes/applicants'));
 app.use('/api/applications', require('./routes/applications'));
+app.use('/api/public', require('./routes/public'));
+app.use('/api/dashboard', require('./routes/dashboard'));
 // Mount new routers here as they are built.
 
 // Unknown API route -> 404 in the standard format

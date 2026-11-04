@@ -6,6 +6,7 @@ const {
 const { toApplicant, toApplicationRow, toGrantSchedule, toHistoryEntry, toTier } = require('../utils/mappers');
 const { PHASES, ELIGIBILITY } = require('../utils/constants');
 const { generateReferenceNo } = require('../utils/referenceNo');
+const { generatePin, hashPin } = require('../utils/pin');
 
 // ---------- helpers ----------
 
@@ -185,6 +186,9 @@ exports.create = async (req, res) => {
     return sendError(res, 409, 'This program is not accepting applications (inactive or archived).');
   }
 
+  const pin = generatePin();
+  const pinHash = await hashPin(pin); // hashed before the transaction so bcrypt never holds a connection
+  
   // Application row and its first history row are saved together or not at all.
   const conn = await pool.getConnection();
   let newId = null;
@@ -194,9 +198,9 @@ exports.create = async (req, res) => {
     for (let attempt = 0; attempt < 5 && !newId; attempt++) {
       try {
         const [result] = await conn.execute(
-          `INSERT INTO applications (reference_no, applicant_id, program_id, academic_year, docs_complete, remarks)
-           VALUES (?, ?, ?, ?, ?, ?)`,
-          [generateReferenceNo(), applicantId, programId, academicYear, docsComplete ? 1 : 0, remarks]);
+          `INSERT INTO applications (reference_no, applicant_id, program_id, academic_year, docs_complete, remarks, lookup_pin_hash)
+           VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          [generateReferenceNo(), applicantId, programId, academicYear, docsComplete ? 1 : 0, remarks, pinHash]);
         newId = result.insertId;
       } catch (err) {
         if (isDuplicateOf(err, 'uq_reference_no')) continue; // astronomically rare: draw a new number
@@ -218,7 +222,9 @@ exports.create = async (req, res) => {
     conn.release();
   }
 
-  return sendSuccess(res, await loadApplication(newId), 'Application created.', 201);
+  // The plain PIN is returned this once and never stored.
+  const record = await loadApplication(newId);
+  return sendSuccess(res, { ...record, lookupPin: pin }, 'Application created.', 201);
 };
 
 // PUT /api/applications/:id   body: any of { academicYear, docsComplete, remarks }
@@ -278,6 +284,22 @@ exports.archive = async (req, res) => {
 
   await pool.execute('UPDATE applications SET is_archived = ? WHERE id = ?', [archived ? 1 : 0, id]);
   return sendSuccess(res, await loadApplication(id), archived ? 'Application archived.' : 'Application restored.');
+};
+
+// PATCH /api/applications/:id/pin   (re-issue; the old PIN stops working immediately)
+exports.reissuePin = async (req, res) => {
+  const id = parseId(req.params.id);
+  if (!id) return sendError(res, 400, 'Invalid application id.');
+
+  const [rows] = await pool.execute(
+    'SELECT id, reference_no, is_archived FROM applications WHERE id = ?', [id]);
+  if (rows.length === 0) return sendError(res, 404, 'Application not found.');
+  if (rows[0].is_archived) return sendError(res, 409, 'Archived applications cannot be changed. Restore it first.');
+
+  const pin = generatePin();
+  await pool.execute('UPDATE applications SET lookup_pin_hash = ? WHERE id = ?', [await hashPin(pin), id]);
+  return sendSuccess(res, { id, referenceNo: rows[0].reference_no, lookupPin: pin },
+    'New lookup PIN issued. It is shown only once.');
 };
 
 // Exported for the workflow controller (next step).

@@ -20,6 +20,7 @@ router.get('/:id/history', asyncHandler(applications.history));
 router.patch('/:id/phase', asyncHandler(workflow.changePhase));
 router.patch('/:id/eligibility', asyncHandler(workflow.setEligibility));
 router.patch('/:id/tier', asyncHandler(workflow.setTier));
+router.patch('/:id/pin', asyncHandler(applications.reissuePin));
 router.get('/:id/grant-schedule', asyncHandler(workflow.getGrantSchedule));
 router.put('/:id/grant-schedule', asyncHandler(workflow.putGrantSchedule));
 router.delete('/:id/grant-schedule', asyncHandler(workflow.deleteGrantSchedule));

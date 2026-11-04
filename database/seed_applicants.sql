@@ -146,3 +146,8 @@ VALUES
   (15, '2026-12-04', 'Municipal Hall, Session Room A', 2500.00),
   (19, '2026-09-11', 'Scholarship Office, Ground Floor', 6000.00),
   (20, '2026-09-15', 'Scholarship Office, Ground Floor', 2500.00);
+
+-- Demo only: every seeded application uses the lookup PIN 123456.
+UPDATE applications
+  SET lookup_pin_hash = '$2b$10$ov0yUeE7eLFsgrAXA.DW8uNIceetlfMmz3eGsOOksxKYn8Mmj.kda'
+  WHERE lookup_pin_hash IS NULL;

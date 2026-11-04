@@ -1,4 +1,4 @@
-# IskolarLink API Contract (v0.2 draft)
+# IskolarLink API Contract (v0.3 draft)
 
 Base URL: `http://localhost:3000/api`. All requests and responses are JSON.
 
@@ -36,7 +36,7 @@ Base URL: `http://localhost:3000/api`. All requests and responses are JSON.
 | Health, public lookup |   Y    |   Y   |   Y   |
 | Login                 |   Y    |   Y   |   Y   |
 | Applicants            |        |   Y   |   Y   |
-| Applications + workflow |      |   Y   |   Y   |
+| Applications + workflow + lookup PIN issue/re-issue |      |   Y   |   Y   |
 | Reopen an approved application |  |   | Y   |
 | Programs and tiers: read |     |   Y   |   Y   |
 | Programs and tiers: write |    |       |   Y   |
@@ -106,13 +106,16 @@ Dates use `YYYY-MM-DD`.
 | Method | Path | Body or query | Success | Failures |
 |--------|------|---------------|---------|----------|
 | GET | `/applications` | `?q=<name or reference>&phase&eligibility&programId&tierId&dateFrom&dateTo&archived&page&limit` | 200 list (each row: id, referenceNo, applicantName, programName, academicYear, phase, eligibility, tier, createdAt) | 400 bad filter value |
-| GET | `/applications/:id` | | 200 full record: application, applicant, program, tier, `grantSchedule` (or null), `history: []` | 404 |
-| POST | `/applications` | `{ applicantId, programId, academicYear, docsComplete?, remarks? }` | 201 record with generated `referenceNo`; phase starts as Submitted; first history row written in the same transaction | 400; 404 applicant or program not found; 409 duplicate (same applicant, program, year); 409 program inactive or archived; 409 applicant archived |
+| GET | `/applications/:id` | | 200 full record: application, applicant, program, tier, `grantSchedule` (or null), `history: []`. Never includes the PIN or its hash. | 404 |
+| POST | `/applications` | `{ applicantId, programId, academicYear, docsComplete?, remarks? }` | 201 record with generated `referenceNo` and a one-time `lookupPin` (6 digits, shown only in this response); phase starts as Submitted; first history row written in the same transaction | 400; 404 applicant or program not found; 409 duplicate (same applicant, program, year); 409 program inactive or archived; 409 applicant archived |
 | PUT | `/applications/:id` | `{ academicYear?, docsComplete?, remarks? }`, at least one (workflow fields are not editable here; sending only those gives 400). A blank `remarks` clears it. | 200 | 400; 404; 409 duplicate; 409 the application is archived (restore it first) |
 | PATCH | `/applications/:id/archive` | `{ archived }` | 200 | 404 |
+| PATCH | `/applications/:id/pin` | none | 200 `{ id, referenceNo, lookupPin }` (new 6-digit PIN, shown only in this response; the old PIN stops working immediately) | 401; 404; 409 the application is archived |
 | GET | `/applications/:id/history` | | 200 timeline: oldPhase, newPhase, changedByName, remarks, changedAt | 404 |
 
 Application rules: `academicYear` looks like `2026-2027` (the second year is the first plus one). The reference number is 10 random characters from `A-H J-K M-N P-Z 2-9` (no 0, O, 1, I or L). New applications always start as Submitted with a pending eligibility. The list searches `q` against first name, last name, "first last" and the reference number; `dateFrom` and `dateTo` filter on the created date (inclusive); `phase`, `eligibility`, `programId` and `tierId` must each be a single valid value (400 otherwise).
+
+Lookup PIN: every application gets a random 6-digit PIN (leading zeros kept) when it is created. Only a bcrypt hash is stored, so the PIN cannot be shown again; if the applicant loses it, staff re-issue one with `PATCH /applications/:id/pin`. Staff give the reference number and PIN to the applicant, who also needs their birth date to use the public lookup.
 
 ### Workflow endpoints
 
@@ -140,11 +143,19 @@ Check order, so status codes are predictable: body validation (400), application
 |--------|------|---------|
 | GET | `/dashboard` | 200 `{ totalApplications, byPhase: { "Submitted": n, ... }, eligibility: { eligible, ineligible, pending }, byTier: [ { program, tier, count } ], upcomingReleases: [ { referenceNo, applicantName, releaseDate, venue, amount } ] }`. Archived applications are excluded. Upcoming releases are the next 10 with a date on or after today. |
 
+ Only applications currently `Approved` count as upcoming (Granted ones are already released; reopened ones are not ready). `byPhase` and `eligibility` always include every key, with 0 when empty. `byTier` lists only applications that have a tier.
+
 ## Public lookup (no login, rate limited)
 
 | Method | Path | Body | Success | Failure |
 |--------|------|------|---------|---------|
-| POST | `/public/lookup` | `{ referenceNo, birthDate }` | 200 (see below) | 404 `"No matching application found."` for **every** failure: wrong reference, wrong birth date, blank values, archived record. 429 when rate limited. |
+| POST | `/public/lookup` | `{ referenceNo, birthDate, pin }` | 200 (see below) | 404 `"No matching application found."` for **every** failure: wrong reference, birth date or PIN; blank or non-string values; archived record; application with no PIN; locked reference. 429 from the IP limiter. |
+
+Protection: a reference number alone is not enough. The applicant must also give their birth date and the 6-digit PIN issued by staff. Every failure returns the identical 404, and the server always performs one bcrypt comparison (against a dummy hash when the reference does not exist) so response time does not reveal which references are valid. `referenceNo` is case-insensitive.
+
+Rate limits (both in memory, both reset when the server restarts):
+- **Per IP:** failed lookups are limited to 30 per 15 minutes (429). Successful lookups are not counted.
+- **Per reference:** 5 failures against one submitted reference string lock it for 15 minutes. Failures are counted for any submitted string, real or not, so a lock reveals nothing. A locked reference gets the same generic 404, even with correct details.
 
 Success returns only these fields:
 
@@ -160,7 +171,7 @@ Success returns only these fields:
 }
 ```
 
-`grantSchedule` is included only when the phase is `Approved` or `Granted`; otherwise it is `null` (for example after an admin reopens an application).
+`grantSchedule` is included only when the phase is `Approved` or `Granted`; otherwise it is `null` (for example after an admin reopens an application). A reopened application shows `For Evaluation` again in the timeline; the reopen reason is not shown.
 
 It never returns the applicant's address, contact details, internal remarks, staff names, or the ineligibility reason text.
 
