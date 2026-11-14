@@ -42,21 +42,43 @@ const auth = {
 };
 
 // Fills <nav id="topbar-right"> with links, the user's name, and a Log out button.
+// On wide screens styles.css shows this navigation as a sidebar.
 // (Hiding links by role is only for convenience; the server enforces the real permissions.)
 function renderTopbar() {
   const nav = document.getElementById('topbar-right');
   const user = auth.getUser();
   if (!nav || !user) return;
+
+  // Tells the stylesheet that this page has the sidebar navigation.
+  document.body.classList.add('has-sidebar');
+
+  const links = [
+    { href: '/dashboard.html', label: 'Dashboard' },
+    { href: '/applications.html', label: 'Applications' },
+    { href: '/applicants.html', label: 'Applicants' },
+    { href: '/programs.html', label: 'Programs' }
+  ];
+  if (user.role === 'admin') links.push({ href: '/users.html', label: 'Users' });
+
+  // Two letters for the round avatar, for example "System Administrator" -> "SA".
+  const words = String(user.fullName || '').trim().split(/\s+/).filter(Boolean);
+  const initials = words.length
+    ? (words[0][0] + (words.length > 1 ? words[words.length - 1][0] : '')).toUpperCase()
+    : '?';
+
   const items = [
-    el('a', { href: '/applications.html' }, 'Applications'),
-    el('a', { href: '/applicants.html' }, 'Applicants'),
-    el('a', { href: '/programs.html' }, 'Programs'),
-    user.role === 'admin' ? el('a', { href: '/users.html' }, 'Users') : null,
-    el('span', { class: 'who' }, `${user.fullName} (${user.role})`),
+    // The link of the page we are on gets the "active" class.
+    ...links.map((l) =>
+      el('a', { href: l.href, class: window.location.pathname === l.href ? 'active' : false }, l.label)
+    ),
+    el('span', { class: 'who' },
+      el('span', { class: 'who-avatar' }, initials),
+      el('span', { class: 'who-text' },
+        el('strong', {}, user.fullName),
+        el('small', {}, user.role))),
     el('button', { class: 'btn small', type: 'button', onclick: auth.logout }, 'Log out')
   ];
-  // replaceChildren would print a null item as the text "null", so drop the empty ones first.
-  nav.replaceChildren(...items.filter(Boolean));
+  nav.replaceChildren(...items);
 }
 
 // ---------- API ----------
@@ -129,7 +151,75 @@ const slug = (s) => String(s).toLowerCase().replace(/\s+/g, '-');
 const phaseTag = (phase) => el('span', { class: 'tag ph-' + slug(phase) }, phase);
 const eligibilityTag = (value) => el('span', { class: 'tag el-' + value }, value);
 
-// Error box inside a dialog (the red list under the title).
+// ---------- Friendly validation errors ----------
+// Field names from the server (like academicYear) are turned into readable labels.
+const FIELD_LABELS = {
+  academicYear: 'Academic year',
+  applicantId: 'Applicant',
+  programId: 'Program',
+  tierId: 'Tier',
+  docsComplete: 'Requirements',
+  remarks: 'Remarks',
+  reason: 'Reason',
+  newPhase: 'New phase',
+  eligibility: 'Eligibility',
+  firstName: 'First name',
+  middleName: 'Middle name',
+  lastName: 'Last name',
+  birthDate: 'Birth date',
+  sex: 'Sex',
+  email: 'Email',
+  contactNumber: 'Contact number',
+  phone: 'Contact number',
+  address: 'Address',
+  school: 'School',
+  courseOrStrand: 'Course or strand',
+  yearLevel: 'Year level',
+  gwa: 'GWA',
+  householdIncome: 'Monthly household income',
+  username: 'Username',
+  password: 'Password',
+  fullName: 'Full name',
+  role: 'Role',
+  name: 'Name',
+  type: 'Type',
+  status: 'Status',
+  description: 'Description',
+  criteria: 'Eligibility criteria',
+  minGwa: 'Minimum GWA',
+  maxIncome: 'Maximum household income',
+  tierName: 'Tier name',
+  defaultAmount: 'Default amount',
+  releaseDate: 'Release date',
+  venue: 'Venue',
+  amount: 'Amount',
+  referenceNo: 'Reference number',
+  pin: 'PIN'
+};
+
+function friendlyField(name) {
+  const key = String(name || '').split('.').pop();
+  if (FIELD_LABELS[key]) return FIELD_LABELS[key];
+  if (!key) return 'Field';
+  const words = key.replace(/([A-Z])/g, ' $1').replace(/[_-]+/g, ' ').trim().toLowerCase();
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
+// "Validation failed." is not helpful, so show a clear heading when there is a list of fields.
+function errorHeading(err) {
+  return err.errors && err.errors.length ? 'Please fix the following:' : (err.message || 'Something went wrong.');
+}
+
+// <ul> of "Field name: message" lines.
+function errorList(list) {
+  return el('ul', { class: 'error-list' },
+    list.map((e) => el('li', {},
+      el('span', { class: 'err-field' }, friendlyField(e.field)),
+      ' ',
+      e.message)));
+}
+
+// Error box inside a dialog (the red box under the title).
 function hideErrorBox(id) {
   const box = document.getElementById(id);
   box.hidden = true;
@@ -137,10 +227,8 @@ function hideErrorBox(id) {
 }
 function fillErrorBox(id, err) {
   const box = document.getElementById(id);
-  box.replaceChildren(el('strong', {}, err.message));
-  if (err.errors && err.errors.length) {
-    box.append(el('ul', {}, err.errors.map((e) => el('li', {}, `${e.field}: ${e.message}`))));
-  }
+  box.replaceChildren(el('strong', {}, errorHeading(err)));
+  if (err.errors && err.errors.length) box.append(errorList(err.errors));
   box.hidden = false;
 }
 
@@ -157,16 +245,14 @@ function showMessage(text, type = 'success', details = []) {
   const banner = document.getElementById('banner');
   banner.className = 'banner ' + type;
   banner.replaceChildren(el('strong', {}, text));
-  if (details.length) {
-    banner.append(el('ul', {}, details.map((d) => el('li', {}, `${d.field}: ${d.message}`))));
-  }
+  if (details.length) banner.append(errorList(details));
   banner.hidden = false;
   clearTimeout(bannerTimer);
   if (type === 'success') bannerTimer = setTimeout(() => { banner.hidden = true; }, 4000);
 }
 
 function showError(err) {
-  showMessage(err.message || 'Something went wrong.', 'error', err.errors || []);
+  showMessage(errorHeading(err), 'error', err.errors || []);
 }
 
 // Shows the last request and its status code in the strip under the toolbar.
@@ -178,3 +264,19 @@ function trackLastCall(method, path, status) {
   strip.textContent = `${method} /api${path}  →  ${status === 0 ? 'no response' : status}`;
 }
 api.onResponse = trackLastCall;
+
+// Click on the dark area outside a dialog closes it.
+// The PIN dialog is skipped on purpose: the PIN can only be shown once.
+let pressedOnBackdrop = false;
+
+document.addEventListener('pointerdown', (event) => {
+  pressedOnBackdrop = event.target instanceof HTMLDialogElement;
+});
+
+document.addEventListener('click', (event) => {
+  const dialog = event.target;
+  if (pressedOnBackdrop && dialog instanceof HTMLDialogElement && dialog.open && dialog.id !== 'pin-dialog') {
+    dialog.close();
+  }
+  pressedOnBackdrop = false;
+});

@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>IskolarLink - Dashboard</title>
+  <link rel="icon" type="image/svg+xml" href="/logo.svg?v=2">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1>IskolarLink</h1>
+    <nav class="topbar-right" id="topbar-right"></nav>
+  </header>
+
+  <main class="wide-main">
+    <div id="banner" class="banner" role="status" hidden></div>
+
+    <div class="page-head">
+      <div>
+        <h2>Dashboard</h2>
+        <p>See where every scholarship application stands at a glance.</p>
+      </div>
+      <div class="page-actions">
+        <a class="btn primary" href="/applications.html">View applications</a>
+        <a class="btn outline" href="/index.html">Public status page</a>
+      </div>
+    </div>
+
+    <section class="stats dash-stats" aria-label="Summary">
+      <div class="stat">
+        <div class="stat-label">Total applications</div>
+        <div class="stat-value" id="d-total">-</div>
+        <div class="stat-note">All active applications</div>
+        <a class="stat-arrow" href="/applications.html" aria-label="Open all applications">&#8599;</a>
+      </div>
+      <div class="stat s-review">
+        <div class="stat-label">In progress</div>
+        <div class="stat-value" id="d-progress">-</div>
+        <div class="stat-note">Submitted, under review or for evaluation</div>
+      </div>
+      <div class="stat s-approved">
+        <div class="stat-label">Approved</div>
+        <div class="stat-value" id="d-approved">-</div>
+        <div class="stat-note">Approved and not yet granted</div>
+      </div>
+      <div class="stat s-granted">
+        <div class="stat-label">Granted</div>
+        <div class="stat-value" id="d-granted">-</div>
+        <div class="stat-note">Scholarship released</div>
+      </div>
+    </section>
+
+    <section class="dash-grid">
+      <article class="dash-card dash-chart">
+        <h3>Applications by phase</h3>
+        <p class="card-sub">How many applications are in each step.</p>
+        <div class="bars" id="phase-bars"><p class="empty-note">Loading...</p></div>
+      </article>
+
+      <article class="dash-card dash-gauge">
+        <h3>Progress</h3>
+        <p class="card-sub">Share of applications that were granted.</p>
+        <div class="gauge" id="gauge" role="img" aria-label="Share of applications that are granted">
+          <div class="gauge-arc" id="gauge-arc"></div>
+          <div class="gauge-center">
+            <strong id="gauge-percent">-</strong>
+            <span>Granted</span>
+          </div>
+        </div>
+        <ul class="legend" id="gauge-legend"></ul>
+      </article>
+
+      <article class="dash-card dash-releases">
+        <h3>Upcoming grant releases</h3>
+        <p class="card-sub">The next scheduled releases.</p>
+        <ul class="release-list" id="release-list"><li class="empty-note">Loading...</li></ul>
+      </article>
+
+      <article class="dash-card dash-tier">
+        <h3>Applications by tier</h3>
+        <p class="card-sub">Applications that already have a tier.</p>
+        <ul class="tier-list" id="tier-list"><li class="empty-note">Loading...</li></ul>
+      </article>
+
+      <article class="dash-card dash-elig">
+        <h3>Eligibility</h3>
+        <p class="card-sub">Results of the evaluation so far.</p>
+        <div class="stack" id="elig-stack" aria-hidden="true"></div>
+        <ul class="legend" id="elig-legend"></ul>
+      </article>
+    </section>
+  </main>
+
+  <script src="/js/confirm.js"></script>
+  <script src="/js/common.js"></script>
+  <script src="/js/dashboard.js"></script>
+</body>
+</html>
