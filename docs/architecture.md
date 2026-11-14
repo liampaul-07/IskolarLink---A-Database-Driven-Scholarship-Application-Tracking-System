@@ -48,7 +48,7 @@ flowchart TD
 4. **Controllers** validate the body (400), look up the records (404), apply business rules (409), and run the database work. The workflow endpoints run inside a transaction and lock the application row with `SELECT ... FOR UPDATE`, so two simultaneous changes cannot both succeed.
 5. **Responses** always use the same envelope: `{ "success": true|false, "message": "...", "data": ... }`. Error responses never contain stack traces or SQL errors.
 
-The public lookup (`POST /api/public/lookup`) skips authentication. It is protected by the rate limits instead, and it returns the same generic 404 for every failure.
+The public lookup (`POST /api/public/lookup`) skips authentication. It is protected instead by the staff-issued PIN, a per-IP rate limit and a per-reference lockout (5 failures lock a reference for 15 minutes), and it returns the same generic 404 for every failure. The dashboard (`GET /api/dashboard`) follows the normal path: login, then a controller that reads the totals.
 
 ## 3. Folder structure
 
@@ -58,28 +58,46 @@ IskolarLink/
 ├── package.json           Dependencies and scripts (npm start, npm run dev)
 ├── .env                   Local secrets (never committed)
 ├── .env.example           Template of the variables the server reads
+├── .gitignore             Files Git must not track (.env, node_modules, desktop.ini)
 ├── database/              SQL files that build and seed the database
 │   ├── schema.sql         Creates the database and all tables
 │   ├── seed.sql           Base data: users, programs, tiers
-│   └── seed_applicants.sql  Demo applicants and applications
+│   └── seed_applicants.sql  Demo applicants, applications, history, grant schedules
 ├── docs/                  Project documentation (this folder)
+│   ├── api.md             Every endpoint
+│   ├── erd.md             ERD and phase transitions
+│   ├── architecture.md    This file
+│   ├── testing.md         Test scripts and the manual QA checklist
+│   ├── troubleshooting.md Common problems and fixes
+│   └── demo-data.md       Demo logins, PIN and reference numbers
 ├── public/                The front end served to the browser
-│   ├── css/               Stylesheets
-│   ├── js/                Vanilla JavaScript that calls the API
-│   └── *.html             Pages: index, login, applicants, applications, programs, users
+│   ├── css/styles.css     The one stylesheet
+│   ├── js/                One script per page, plus shared helpers
+│   │   ├── common.js      Shared helpers (API calls, login state, top bar)
+│   │   ├── confirm.js     Confirmation dialog helper
+│   │   └── index.js, login.js, dashboard.js, applicants.js,
+│   │       applications.js, programs.js, users.js
+│   ├── logo.svg
+│   └── *.html             index (public status lookup, the home page), login,
+│                          dashboard, applicants, applications, programs, users
 ├── server/                The Express API
 │   ├── server.js          Entry point (npm start runs this file)
-│   └── ...                Routes, middleware and controllers (see section 2)
-└── tests/                 Test scripts, see testing.md
+│   ├── app.js             Builds the app: security headers, CORS, body limit, routes
+│   ├── config/            Database connection and settings
+│   ├── routes/            Maps each URL and method to a handler
+│   ├── middleware/        Login check and role check
+│   ├── controllers/       Validation, business rules and database work
+│   └── utils/             Shared helpers (responses, mappers, PIN, lookup lockout)
+└── tests/                 Smoke test scripts, see testing.md
 ```
 
 | Folder | What it is for |
 |---|---|
 | `database/` | Import order matters: `schema.sql`, then `seed.sql`, then `seed_applicants.sql`. |
-| `docs/` | API contract, ERD, architecture, testing notes and troubleshooting. |
-| `public/` | Everything the browser loads. It talks to the API with `fetch`. |
-| `server/` | All backend code. The entry point is `server/server.js`. |
-| `tests/` | Scripts that call the running API. They create rows, so read [testing.md](testing.md) before running them. |
+| `docs/` | API contract, ERD, architecture, testing notes, troubleshooting and demo data. |
+| `public/` | Everything the browser loads. The home page (`index.html`) is the public status lookup, and staff pages are reached from its Staff login link. All pages talk to the API with `fetch`. |
+| `server/` | All backend code. The entry point is `server/server.js`, which loads `server/app.js`. |
+| `tests/` | Six smoke test scripts that call the running API. They create rows and trip rate limits, so read [testing.md](testing.md) before running them. |
 
 ## 4. Database tables
 
@@ -104,4 +122,8 @@ The database itself enforces the duplicate checks (applicant identity, duplicate
 - Passwords and lookup PINs are stored only as bcrypt hashes. A lost PIN cannot be shown again; staff issue a new one.
 - Login is rate limited, and every login failure returns the same message so usernames cannot be guessed.
 - The public lookup needs the reference number, birth date and PIN together, returns only a small set of fields, and uses one generic 404 for every failure.
+- Every database query is parameterized, so input is never treated as SQL.
+- `helmet` sets security headers and a content security policy, CORS allows only the configured origin, request bodies are limited to 100 KB, and API responses are sent with `Cache-Control: no-store`.
+- The pages show data with `textContent`, not `innerHTML`, so stored text is shown as text and never run as script.
+- Errors return a generic 500 message. Stack traces and SQL errors never reach the client.
 - Records are archived instead of deleted for applicants, programs and applications.

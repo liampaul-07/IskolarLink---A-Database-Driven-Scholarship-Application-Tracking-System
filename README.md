@@ -60,7 +60,7 @@ These are development accounts only. Never reuse these passwords anywhere real.
 
 Every **seeded** application uses the demo PIN **`123456`**. This is demo data only. Applications created through the API get a random PIN, shown once at creation.
 
-Good public lookup examples (PIN `123456`):
+The full list of seeded reference numbers is in [docs/demo-data.md](docs/demo-data.md). Good public lookup examples (PIN `123456`):
 
 | Shows | Reference number | Birth date |
 |---|---|---|
@@ -90,7 +90,7 @@ Notes:
 
 ```
 database/   schema.sql, seed.sql, seed_applicants.sql
-docs/       api.md, erd.md, architecture.md, testing.md, troubleshooting.md
+docs/       api.md, erd.md, architecture.md, testing.md, troubleshooting.md, demo-data.md
 public/     front-end pages, css/, js/
 server/     app.js, server.js, config/, controllers/, middleware/, routes/, utils/
 tests/      automated smoke tests
@@ -105,6 +105,7 @@ tests/      automated smoke tests
 | [docs/architecture.md](docs/architecture.md) | The three layers, how a request travels through the server, folder structure and what each table stores. |
 | [docs/testing.md](docs/testing.md) | How to run the test scripts, how to reset afterwards, and the manual QA checklist. |
 | [docs/troubleshooting.md](docs/troubleshooting.md) | Common problems and fixes (startup, database, 401/403/409/429, lookup, Postman). |
+| [docs/demo-data.md](docs/demo-data.md) | Demo logins, the demo PIN and every seeded reference number with its birth date. |
 
 ## Security summary
 

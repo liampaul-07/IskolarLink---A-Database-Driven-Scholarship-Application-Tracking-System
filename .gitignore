@@ -19,3 +19,6 @@ Thumbs.db
 docs/defense-notes.md
 docs/defense-notes-v2.md
 docs/team-instructions.md
+
+desktop.ini
+.env.docker
