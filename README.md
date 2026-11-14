@@ -34,7 +34,7 @@ HTML / CSS / vanilla JavaScript front end, Node.js + Express API, MariaDB (MySQL
    1. `database/schema.sql` (creates the `iskolarlink` database; **erases existing data**)
    2. `database/seed.sql` (users, programs, tiers)
    3. `database/seed_applicants.sql` (24 applicants, 22 applications, history, grant schedules)
-4. Create a `.env` file in the project root. Ask the project owner for the values. It must define the database connection, `JWT_SECRET` (at least 32 characters; the server refuses to start otherwise), and optionally `JWT_EXPIRES_IN` (default `8h`) and `CORS_ORIGIN` (for example `http://localhost:3000`). **Never commit `.env`.**
+4. Create a `.env` file in the project root by copying `.env.example`, then fill in the values (see [troubleshooting.md](docs/troubleshooting.md#1-the-server-will-not-start) for a ready example). It must define the database connection and `JWT_SECRET` (at least 32 characters; the server refuses to start otherwise). Optional: `JWT_EXPIRES_IN` (default `8h`) and `CORS_ORIGIN` (for example `http://localhost:3000`). **Never commit `.env`.**
 5. Install and start:
 
 ```bash
@@ -43,6 +43,8 @@ npm start
 ```
 
 6. Open http://localhost:3000. The API is at http://localhost:3000/api (health check: `/api/health`).
+
+Something not working? See [docs/troubleshooting.md](docs/troubleshooting.md).
 
 ## Test accounts (seed data only)
 
@@ -82,12 +84,13 @@ node tests/security-smoke.js
 Notes:
 - The tests **create rows** and the lookup test deliberately **trips the rate limiters**. After running them, re-import `database/seed_applicants.sql` and restart the server.
 - Run `lookup-smoke.js` on a freshly started server.
+- Full details and the manual QA checklist are in [docs/testing.md](docs/testing.md).
 
 ## Project structure
 
 ```
 database/   schema.sql, seed.sql, seed_applicants.sql
-docs/       api.md (API contract), erd.md (ERD and phase transitions)
+docs/       api.md, erd.md, erd.png, architecture.md, testing.md, troubleshooting.md
 public/     front-end pages, css/, js/
 server/     app.js, server.js, config/, controllers/, middleware/, routes/, utils/
 tests/      automated smoke tests
@@ -95,8 +98,13 @@ tests/      automated smoke tests
 
 ## Documentation
 
-- `docs/api.md`: every endpoint, request/response shape and error code.
-- `docs/erd.md`: entity relationship diagram and the allowed phase transitions.
+| File | What it covers |
+|---|---|
+| [docs/api.md](docs/api.md) | Every endpoint, request/response shape and error code. |
+| [docs/erd.md](docs/erd.md) | Entity relationship diagram, allowed phase transitions, and which rules the database vs the backend enforces. |
+| [docs/architecture.md](docs/architecture.md) | The three layers, how a request travels through the server, folder structure and what each table stores. |
+| [docs/testing.md](docs/testing.md) | How to run the test scripts, how to reset afterwards, and the manual QA checklist. |
+| [docs/troubleshooting.md](docs/troubleshooting.md) | Common problems and fixes (startup, database, 401/403/409/429, lookup, Postman). |
 
 ## Security summary
 
@@ -116,6 +124,31 @@ tests/      automated smoke tests
 - JWTs cannot be revoked individually before they expire (8 hours by default).
 - Seeded applications share one demo PIN.
 - No password reset flow.
+
+## Contributing
+
+Work on a branch and open a pull request into `main`. Do not push straight to `main`.
+
+**Branch names:** `type/short-description`, lowercase with hyphens.
+
+| Prefix | Use for |
+|---|---|
+| `feature/` | new functionality (`feature/public-lookup`) |
+| `fix/` | bug fixes (`fix/login-error-message`) |
+| `docs/` | documentation only (`docs/project-documentation`) |
+| `test/` | adding or changing tests |
+| `refactor/` | restructuring without changing behavior |
+| `chore/` | setup, dependencies, config |
+
+**Commit messages:** [Conventional Commits](https://www.conventionalcommits.org/), in the form `type(scope): short description`. Use the imperative, lowercase, no period at the end.
+
+```bash
+git commit -m "feat(lookup): add PIN-protected public status lookup"
+git commit -m "fix(auth): return one generic error for failed logins"
+git commit -m "docs: add architecture and testing guides"
+```
+
+Types: `feat`, `fix`, `docs`, `test`, `refactor`, `style`, `chore`, `perf`. Make one commit per logical change. Never commit `.env` or real secrets.
 
 ## Team
 
