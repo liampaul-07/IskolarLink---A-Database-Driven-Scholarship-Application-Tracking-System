@@ -9,40 +9,69 @@
 <body>
   <header class="topbar">
     <h1>IskolarLink</h1>
-    <span class="badge">Test console: Applications</span>
     <nav class="topbar-right" id="topbar-right"></nav>
   </header>
 
   <main class="wide-main">
     <div id="banner" class="banner" role="status" hidden></div>
 
-    <section class="filters">
-      <input id="filter-q" type="search" placeholder="Search name or reference no.">
-      <select id="filter-phase">
-        <option value="">All phases</option>
-        <option>Submitted</option>
-        <option>Under Review</option>
-        <option>For Evaluation</option>
-        <option>Approved</option>
-        <option>Ineligible</option>
-        <option>Granted</option>
-      </select>
-      <select id="filter-eligibility">
-        <option value="">Any eligibility</option>
-        <option value="pending">Pending</option>
-        <option value="eligible">Eligible</option>
-        <option value="ineligible">Ineligible</option>
-      </select>
-      <select id="filter-program"></select>
-      <select id="filter-tier" disabled></select>
-      <label class="date-filter">From <input id="filter-from" type="date"></label>
-      <label class="date-filter">To <input id="filter-to" type="date"></label>
-      <label class="date-filter"><input id="filter-archived" type="checkbox"> Show archived</label>
-      <button id="btn-clear" class="btn small" type="button">Clear filters</button>
+    <div class="page-head">
+      <div>
+        <h2>Applications</h2>
+        <p>Review scholarship applications, track their progress and manage each applicant's status.</p>
+      </div>
       <button id="btn-new" class="btn primary" type="button">+ New application</button>
+    </div>
+
+    <section class="stats" aria-label="Application summary">
+      <div class="stat">
+        <div class="stat-label">Total applications</div>
+        <div class="stat-value" id="stat-total">-</div>
+      </div>
+      <div class="stat s-submitted">
+        <div class="stat-label">Submitted</div>
+        <div class="stat-value" id="stat-submitted">-</div>
+      </div>
+      <div class="stat s-review">
+        <div class="stat-label">Under Review</div>
+        <div class="stat-value" id="stat-review">-</div>
+      </div>
+      <div class="stat s-approved">
+        <div class="stat-label">Approved</div>
+        <div class="stat-value" id="stat-approved">-</div>
+      </div>
     </section>
 
-    <div id="last-call" class="last-call">No requests yet.</div>
+    <section class="filters">
+      <div class="filter-main">
+        <input id="filter-q" type="search" placeholder="Search name or reference no." aria-label="Search by name or reference number">
+        <select id="filter-phase" aria-label="Filter by phase">
+          <option value="">All phases</option>
+          <option>Submitted</option>
+          <option>Under Review</option>
+          <option>For Evaluation</option>
+          <option>Approved</option>
+          <option>Ineligible</option>
+          <option>Granted</option>
+        </select>
+        <select id="filter-eligibility" aria-label="Filter by eligibility">
+          <option value="">Any eligibility</option>
+          <option value="pending">Pending</option>
+          <option value="eligible">Eligible</option>
+          <option value="ineligible">Ineligible</option>
+        </select>
+        <select id="filter-program" aria-label="Filter by program"></select>
+        <select id="filter-tier" aria-label="Filter by tier" disabled></select>
+      </div>
+      <div class="filter-extra">
+        <div class="filter-dates">
+          <label class="date-filter">From <input id="filter-from" type="date"></label>
+          <label class="date-filter">To <input id="filter-to" type="date"></label>
+        </div>
+        <label class="date-filter"><input id="filter-archived" type="checkbox"> Show archived</label>
+        <button id="btn-clear" class="btn small" type="button">Clear filters</button>
+      </div>
+    </section>
 
     <table>
       <thead>
@@ -113,7 +142,25 @@
     </div>
   </dialog>
 
+  <!-- One-time PIN -->
+  <dialog id="pin-dialog">
+    <div class="dialog-body">
+      <h2 id="pin-title">Lookup PIN</h2>
+      <p id="pin-ref" class="muted"></p>
+      <div id="pin-value" class="pin-box"></div>
+      <p class="pin-warning">
+        Copy or write down this PIN now. It will not be shown again.
+        Give it to the applicant together with the reference number.
+      </p>
+      <div class="dialog-actions">
+        <button type="button" class="btn" id="btn-pin-copy">Copy PIN</button>
+        <button type="button" class="btn primary" id="btn-pin-close">I saved the PIN</button>
+      </div>
+    </div>
+  </dialog>
+
   <script src="/js/common.js"></script>
+  <script src="/js/confirm.js"></script>
   <script src="/js/applications.js"></script>
 </body>
 </html>

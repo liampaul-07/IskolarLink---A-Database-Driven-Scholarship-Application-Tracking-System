@@ -7,7 +7,35 @@ renderTopbar();
 
 const state = { page: 1, limit: 10, total: 0, applicants: [] };
 
-const money = (n) => (n === null || n === undefined ? '-' : Number(n).toLocaleString('en-PH'));
+const money = (n) => (n === null || n === undefined ? '-' : '₱' + Number(n).toLocaleString('en-PH'));
+
+// Circular initials avatar (no profile photos exist). The color is picked from the name,
+// so the same person always gets the same one.
+function initials(a) {
+  const first = (a.firstName || '').trim().charAt(0);
+  const last = (a.lastName || '').trim().charAt(0);
+  return (first + last).toUpperCase() || '?';
+}
+function avatarTone(name) {
+  let sum = 0;
+  for (const ch of String(name)) sum += ch.charCodeAt(0);
+  return 'av-' + ((sum % 4) + 1);
+}
+
+// ---------- Summary cards ----------
+async function loadSummary() {
+  try {
+    const res = await api('GET', '/applicants?limit=1');
+    $('stat-total').textContent = res.data.pagination.total;
+  } catch (err) {
+    $('stat-total').textContent = '-';
+  }
+}
+
+async function refreshAfterChange() {
+  await loadApplicants();
+  loadSummary();
+}
 
 // ---------- List ----------
 async function loadApplicants() {
@@ -39,13 +67,19 @@ function renderApplicants() {
     const fullName = [a.lastName + ',', a.firstName, a.middleName].filter(Boolean).join(' ');
     body.append(el('tr', {},
       el('td', {},
-        el('strong', {}, fullName),
-        a.isArchived ? [' ', el('span', { class: 'tag archived' }, 'archived')] : '',
-        el('div', { class: 'sub' }, a.address)),
-      el('td', {}, a.birthDate),
-      el('td', {}, a.school || '-', a.courseOrStrand ? el('div', { class: 'sub' }, a.courseOrStrand) : ''),
-      el('td', {}, a.gwa ?? '-'),
-      el('td', {}, money(a.householdIncome)),
+        el('div', { class: 'person' },
+          el('span', { class: 'avatar ' + avatarTone(fullName), 'aria-hidden': 'true' }, initials(a)),
+          el('div', { class: 'person-text' },
+            el('div', { class: 'person-name' },
+              el('strong', {}, fullName),
+              a.isArchived ? [' ', el('span', { class: 'tag archived' }, 'archived')] : ''),
+            el('div', { class: 'sub' }, a.address)))),
+      el('td', { class: 'nowrap' }, a.birthDate),
+      el('td', {},
+        el('div', { class: 'cell-main' }, a.school || '-'),
+        a.courseOrStrand ? el('div', { class: 'sub' }, a.courseOrStrand) : ''),
+      el('td', { class: 'num' }, a.gwa ?? '-'),
+      el('td', { class: 'num' }, money(a.householdIncome)),
       el('td', { class: 'actions' },
         el('button', { class: 'btn small', type: 'button', onclick: () => openForm(a.id) }, 'Edit'),
         a.isArchived
@@ -58,6 +92,7 @@ function renderApplicants() {
   $('pager-info').textContent = `Page ${state.page} of ${pages} (${state.total} total)`;
   $('btn-prev').disabled = state.page <= 1;
   $('btn-next').disabled = state.page >= pages;
+  $('stat-shown').textContent = state.total;
 }
 
 // ---------- Add / edit ----------
@@ -109,7 +144,7 @@ $('applicant-form').addEventListener('submit', async (event) => {
     const res = id ? await api('PUT', '/applicants/' + id, body) : await api('POST', '/applicants', body);
     $('applicant-dialog').close();
     showMessage(res.message);
-    await loadApplicants();
+    await refreshAfterChange();
   } catch (err) {
     fillErrorBox('applicant-errors', err); // dialog stays open so the staff member can fix the input
   }
@@ -124,7 +159,7 @@ async function setArchived(applicant, archived) {
   try {
     const res = await api('PATCH', `/applicants/${applicant.id}/archive`, { archived });
     showMessage(res.message);
-    await loadApplicants();
+    await refreshAfterChange();
   } catch (err) {
     showError(err); // e.g. 409: still has open applications
   }
@@ -142,4 +177,7 @@ $('filter-q').addEventListener('input', () => {
   searchTimer = setTimeout(() => { state.page = 1; loadApplicants(); }, 300);
 });
 
-if (me) loadApplicants();
+if (me) {
+  loadApplicants();
+  loadSummary();
+}
