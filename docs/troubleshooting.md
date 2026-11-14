@@ -33,7 +33,7 @@ Common problems and their fixes. Find the symptom, read the cause, and follow th
    DB_NAME=iskolarlink
    JWT_SECRET=<a long random string>
    ```
-   On a default XAMPP install the user is `root` and the password is blank. Write no spaces around `=` and no quotes. The template has no `JWT_SECRET` line, so add it yourself.
+   On a default XAMPP install the user is `root` and the password is blank. Write no spaces around `=` and no quotes. `JWT_SECRET` has no default: generate it as described in Cause B.
 3. Save the file and run `npm start` again.
 
 **Cause B: `JWT_SECRET` is missing or shorter than 32 characters.** The server refuses to start and prints that it needs at least 32 characters.
@@ -48,7 +48,7 @@ Do not share the secret, post it in a screenshot, or commit it. If it was expose
 
 **Cause D: `bcrypt` fails to load.** Run `npm rebuild bcrypt`, or delete `node_modules` and run `npm install` again.
 
-**Check that `.env` is not tracked by Git:** `git check-ignore .env` should print `.env`. Never commit it.
+**Check that `.env` is not tracked by Git:** `git check-ignore .env` should print `.env`, and `git ls-files .env` should print nothing. Never commit it. If it was committed, run `git rm --cached .env`, commit, and generate a new `JWT_SECRET`.
 
 ## 2. Database connection errors
 
@@ -133,7 +133,7 @@ The public lookup returns the same `No matching application found.` for every fa
 
 1. **The reference is locked** by repeated failed attempts. Restart the server.
 2. **The demo data was changed** by a test script (a new PIN, a changed birth date or an archived record). Re-import `database/seed_applicants.sql` in phpMyAdmin. If you also created test users or programs, drop the `iskolarlink` database and import all three files again in order.
-3. **A typo.** The demo record is reference `S7H67DXZRY`, birth date `2005-03-14` (format `YYYY-MM-DD`), PIN `123456`. The reference is not case-sensitive, but the birth date and PIN must match exactly.
+3. **A typo.** The demo record is reference `S7H67DXZRY`, birth date `2005-03-14` (format `YYYY-MM-DD`), PIN `123456`. More examples are in [demo-data.md](demo-data.md). The reference is not case-sensitive, but the birth date and PIN must match exactly.
 4. **The record has no PIN or is archived.** Both return 404 by design.
 
 After fixing it, restart the server and try the demo lookup again.

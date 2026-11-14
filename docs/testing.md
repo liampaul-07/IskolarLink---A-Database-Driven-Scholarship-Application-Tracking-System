@@ -21,14 +21,20 @@ node tests/<file-name>.js
 
 | File | How to run | What it covers |
 |---|---|---|
-| `tests/workflow-smoke.js` | `node tests/workflow-smoke.js` | Smoke test of the application workflow (phase changes). |
-| `tests/<other file>.js` | `node tests/<other file>.js` | One row per remaining file in `tests/`. List them with `dir tests` (cmd) or `ls tests` (Git Bash). |
+| `tests/auth-smoke.js` | `node tests/auth-smoke.js` | Login (success and failure), `GET /auth/me`, and missing or bad tokens. [CONFIRM] |
+| `tests/workflow-smoke.js` | `node tests/workflow-smoke.js` | 39 checks: phase transitions, illegal moves (409), documents and tier rules, ineligible reasons, admin-only reopen (403 for staff), grant schedules, and the order of error codes. |
+| `tests/lookup-smoke.js` | `node tests/lookup-smoke.js` | 27 checks: public lookup with reference, birth date and PIN, the identical 404 for every failure, the per-IP limiter, the per-reference lockout, and whitelisted output. Run it on a freshly started server. |
+| `tests/dashboard-smoke.js` | `node tests/dashboard-smoke.js` | 17 checks: totals, every phase and eligibility key present, tier counts and upcoming releases. |
+| `tests/security-smoke.js` | `node tests/security-smoke.js` | 24 checks: 401 without a token on 32 staff routes, forged and `alg=none` tokens, 403 for staff on admin-only routes, stored script text kept as data, security headers, and no stack traces or SQL in errors. |
+| `tests/records-smoke.js` | `node tests/records-smoke.js` | [CONFIRM] Create, read, update and archive for applicants, applications and programs (inferred from the file name). |
+
+The four counted suites add up to 107 automated checks (39 + 27 + 17 + 24). All of them passed on the last full run. Add the counts for `auth-smoke.js` and `records-smoke.js` once you have run them.
 
 ### Warning: the scripts change your data and trip the rate limiters
 
 - **They create rows.** Applications, applicants, users and history rows are added to the database and are not removed afterwards.
 - **They trip the rate limiters.** Failed logins and failed lookups count toward the limits (login: 10 failures in 15 minutes per IP; public lookup: 30 failures per IP and 5 per reference in 15 minutes). The limits are held in memory, so a restart clears them.
-- **They can change the demo records.** The demo lookup (reference `S7H67DXZRY`, birth date `2005-03-14`, PIN `123456`) may stop working after a run, because the lookup limiter locks a reference after repeated failures and the scripts may change the demo application.
+- **They can change the demo records.** The demo lookup (reference `S7H67DXZRY`, birth date `2005-03-14`, PIN `123456`; more examples in [demo-data.md](demo-data.md)) may stop working after a run, because the lookup limiter locks a reference after repeated failures and the scripts may change the demo application.
 
 ### Reset after running the scripts
 
