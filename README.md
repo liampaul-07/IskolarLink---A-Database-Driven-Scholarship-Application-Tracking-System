@@ -90,7 +90,7 @@ Notes:
 
 ```
 database/   schema.sql, seed.sql, seed_applicants.sql
-docs/       api.md, erd.md, erd.png, architecture.md, testing.md, troubleshooting.md
+docs/       api.md, erd.md, architecture.md, testing.md, troubleshooting.md
 public/     front-end pages, css/, js/
 server/     app.js, server.js, config/, controllers/, middleware/, routes/, utils/
 tests/      automated smoke tests
