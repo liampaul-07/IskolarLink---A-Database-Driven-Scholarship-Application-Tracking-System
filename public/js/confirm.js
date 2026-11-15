@@ -108,16 +108,21 @@
     if (select.disabled && openState && openState.select === select) closeMenu();
   }
 
-  function setActive(index) {
+    function setActive(index) {
     if (!openState) return;
-    const { items, btn } = openState;
+    const { items, btn, menu } = openState;
     if (items[openState.index]) items[openState.index].classList.remove('is-active');
     openState.index = index;
     const item = items[index];
     if (!item) return;
     item.classList.add('is-active');
     btn.setAttribute('aria-activedescendant', item.id);
-    item.scrollIntoView({ block: 'nearest' });
+
+    // Scroll only the dropdown list itself, never the dialog or the page
+    const top = item.offsetTop;
+    const bottom = top + item.offsetHeight;
+    if (top < menu.scrollTop) menu.scrollTop = top;
+    else if (bottom > menu.scrollTop + menu.clientHeight) menu.scrollTop = bottom - menu.clientHeight;
   }
 
   function move(step) {
@@ -239,8 +244,20 @@
     if (height > roomBelow && roomAbove > roomBelow) top = rect.top - height - 6;
     let left = rect.left;
     if (left + width > window.innerWidth - 8) left = window.innerWidth - 8 - width;
-    menu.style.left = Math.max(8, left) + 'px';
-    menu.style.top = Math.max(8, top) + 'px';
+        const wantLeft = Math.max(8, left);
+    const wantTop = Math.max(8, top);
+    menu.style.left = wantLeft + 'px';
+    menu.style.top = wantTop + 'px';
+
+    // Inside a dialog, "fixed" can be measured from the dialog instead of the screen.
+    // Check where the menu really landed and shift it back by the difference.
+    const landed = menu.getBoundingClientRect();
+    const offX = landed.left - wantLeft;
+    const offY = landed.top - wantTop;
+    if (offX || offY) {
+      menu.style.left = (wantLeft - offX) + 'px';
+      menu.style.top = (wantTop - offY) + 'px';
+    }
   }
 
   function enhance(select) {
