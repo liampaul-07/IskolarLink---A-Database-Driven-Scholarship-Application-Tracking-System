@@ -6,6 +6,9 @@ const { sendError } = require('./utils/response');
 
 const app = express();
 
+// Nginx, trust one proxy hop (the load balancer) so that req.ip is the real client IP, not the LB's IP.
+app.set('trust proxy', 1);
+
 // Security headers. upgradeInsecureRequests is off so the app also works over plain
 // http://localhost during development.
 app.use(helmet({
